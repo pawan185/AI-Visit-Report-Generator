@@ -67,3 +67,38 @@ If you prefer not to enter your Gemini API key every time, you can create a `.en
 GEMINI_API_KEY=your_api_key_here
 ```
 The application will automatically detect and load it on startup.
+
+---
+
+## Work Division (5 Members)
+
+This project was divided among five people: pawan, gour, vinit, aryan, and nomaan.
+
+### 1. Pawan - Project Lead and AI Engineer
+- Planned architecture and end-to-end workflow.
+- Owned AI integration in `generate_ai.py`.
+- Designed prompts for interview questions and report synthesis.
+
+### 2. Gour - UI/UX and Frontend Developer
+- Designed and implemented Streamlit screens in `app.py`.
+- Built the step-by-step user flow for all five phases.
+- Improved form layout and overall usability.
+
+### 3. Vinit - Backend and Workflow Developer
+- Implemented state and transition logic in `app.py`.
+- Managed data flow between UI inputs and AI processing.
+- Stabilized execution flow between generation, review, and export.
+
+### 4. Nomaan - Document Export Engineer
+- Developed export features in `export_utils.py`.
+- Implemented conversion of generated report text into `.docx` format.
+- Improved structure and readability of exported documents.
+
+### 5.  Aryan - QA and Documentation
+- Tested full application flow and identified issues.
+- Improved reliability with validation and error-handling checks.
+- Prepared project documentation in `README.md`.
+
+---
+
+> Built with Python, Streamlit, and Google Gemini AI.

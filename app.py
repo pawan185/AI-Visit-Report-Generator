@@ -15,6 +15,8 @@ def init_session_state():
         st.session_state.phase = 1
     if "company_details" not in st.session_state:
         st.session_state.company_details = {}
+    if "visit_purpose" not in st.session_state:
+        st.session_state.visit_purpose = ""
     if "scope_and_questions" not in st.session_state:
         st.session_state.scope_and_questions = ""
     if "observations" not in st.session_state:
@@ -23,6 +25,8 @@ def init_session_state():
         st.session_state.visit_report = ""
     if "client_proposal" not in st.session_state:
         st.session_state.client_proposal = ""
+    if "other_observations" not in st.session_state:
+        st.session_state.other_observations = ""
 
 def next_phase():
     st.session_state.phase += 1
@@ -51,21 +55,35 @@ st.subheader(f"Phase {st.session_state.phase}: {phase_titles[st.session_state.ph
 if st.session_state.phase == 1:
     with st.form("company_details_form"):
         company_name = st.text_input("Company Name", value=st.session_state.company_details.get("company_name", ""))
-        industry = st.text_input("Industry", value=st.session_state.company_details.get("industry", ""))
+        industry = st.text_input("Industry / Type of Company", value=st.session_state.company_details.get("industry", ""))
         visit_date = st.date_input("Visit Date")
         primary_contact = st.text_input("Primary Contact")
+
+        st.markdown("---")
+        st.markdown("#### 🎯 Purpose of Visit")
+        visit_purpose = st.text_area(
+            "What is the main goal or purpose of this visit?",
+            value=st.session_state.visit_purpose,
+            placeholder="e.g. Understand their current HR software pain points and assess potential for our HRMS solution.",
+            height=120,
+            help="Be specific — the AI will use this to generate targeted, relevant discovery questions instead of generic ones."
+        )
         
         submitted = st.form_submit_button("Next: Generate Scope & Questions")
         if submitted:
             if company_name and industry:
-                st.session_state.company_details = {
-                    "company_name": company_name,
-                    "industry": industry,
-                    "visit_date": str(visit_date),
-                    "primary_contact": primary_contact
-                }
-                next_phase()
-                st.rerun()
+                if not visit_purpose.strip():
+                    st.error("Please describe the purpose or main goal of this visit.")
+                else:
+                    st.session_state.company_details = {
+                        "company_name": company_name,
+                        "industry": industry,
+                        "visit_date": str(visit_date),
+                        "primary_contact": primary_contact
+                    }
+                    st.session_state.visit_purpose = visit_purpose.strip()
+                    next_phase()
+                    st.rerun()
             else:
                 st.error("Please fill in at least the Company Name and Industry.")
 
@@ -82,7 +100,11 @@ elif st.session_state.phase == 2:
         if not st.session_state.scope_and_questions:
             with st.spinner("Generating document..."):
                 try:
-                    st.session_state.scope_and_questions = generate_scope_and_questions(api_key_input, st.session_state.company_details)
+                    st.session_state.scope_and_questions = generate_scope_and_questions(
+                        api_key_input,
+                        st.session_state.company_details,
+                        st.session_state.visit_purpose
+                    )
                     st.success("Scope & Questions generated successfully!")
                 except Exception as e:
                     st.error(f"Error communicating with AI service: {e}")
@@ -141,9 +163,21 @@ elif st.session_state.phase == 3:
                                value=st.session_state.observations.get(q, ""), 
                                key=f"obs_{i}")
             st.session_state.observations[q] = ans
+
+        st.markdown("---")
+        st.markdown("#### 📝 Other Observations")
+        other_obs = st.text_area(
+            "Any additional observations from the visit not covered by the questions above?",
+            value=st.session_state.other_observations,
+            placeholder="e.g. Noticed the office environment was disorganised, staff seemed undertrained, they mentioned an upcoming expansion plan...",
+            height=150,
+            key="other_obs_input",
+            help="Use this space to capture anything you observed during the visit that didn't fit into a specific question."
+        )
             
         submitted = st.form_submit_button("Next: Draft Visit Report")
         if submitted:
+             st.session_state.other_observations = other_obs
              next_phase()
              st.rerun()
              
@@ -167,7 +201,8 @@ elif st.session_state.phase == 4:
                     st.session_state.visit_report = generate_visit_report(
                         api_key_input,
                         st.session_state.company_details, 
-                        st.session_state.observations
+                        st.session_state.observations,
+                        st.session_state.other_observations
                     )
                 except Exception as e:
                     st.error(f"Error communicating with AI service: {e}")
